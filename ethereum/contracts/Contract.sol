@@ -12,12 +12,21 @@ contract DeployContracts{
     }
     function DeployProfiles(string username,string data){
         address profile=new Profile();
-        profile.addUser(username,data);
+        Profile prof=Profile(profile);
+        prof.addUser(username,data);
         deployedUsers.push(profile);
     }
-    function getDeployedProfileByName(string name){
+    function getDeployedProfileByName(string name)view returns (address){
+         for(uint i=0;i<deployedUsers.length;i++)
+        {
+            Profile prof=Profile(deployedUsers[i]);
+            if(keccak256(abi.encodePacked(name)) == keccak256(abi.encodePacked(prof.getUserName()))){
+                return deployedUsers[i];
+            }
+        }
 
     }
+
 
 }
 
@@ -98,7 +107,7 @@ contract Profile{
         return data;
     }
 
-    function addUser(string user_name_received,string data_received){
+    function addUser(string user_name_received,string data_received) public {
         name=user_name_received;
         data=data_received;
     }
@@ -109,4 +118,5 @@ contract Profile{
         }
         return("NO USER","NO DATA");
     }
+
 }
