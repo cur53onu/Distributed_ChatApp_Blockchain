@@ -109,10 +109,21 @@ def login():
         elif("/login" in user_input):
             user_input=user_input.split(' ')
             auth.Login(user_input[1], user_input[2])
+
             # if auth.Login(user_input[1], user_input[2]):
             #     print('yuppy')
         elif("/logout"==user_input):
             auth.Logout()
+        elif("/deploychat" in user_input):
+            user_input = user_input.split(' ')
+            r=Room.ChatRoom()
+            r.deployChatRoom(user_input[1],user_input[2])
+        elif("/getchatroom?" in user_input):
+            user_input = user_input.split(' ')
+            r = Room.ChatRoom()
+            print(r.callGetChatRoomAddress(user_input[1]))
+
+
         else:
             print(user_input)
 
@@ -134,7 +145,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('\nExiting!!!\n')
         auth=Auth()
-        # auth.Clear()
+        auth.Clear()
         sys.exit(0)
 
 # acct=web3.eth.account.privateKeyToAccount("0x5a38cd08daef780aef7fd4225bb190911250bb1d548f8baec83ac9b2feceff41")

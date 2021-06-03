@@ -7,6 +7,7 @@ class SmartContract:
             data = json.load(data_file)
             self.contract_address = data['contract_chatroom_address']
             self.contract_profile_address=data['contract_profile_address']
+            self.contract_deploy_address=data['contract_deploycontracts_address']
             self.user_private_key = data['user_private_key']
             self.infura_node_url = data['infura_node_url']
             self.web3 = Web3(Web3.HTTPProvider(self.infura_node_url))
@@ -29,6 +30,7 @@ class SmartContract:
 
         signed = self.get_user_account().signTransaction(builtTransaction)
         tx_hash = self.web3.eth.sendRawTransaction(signed.rawTransaction)
+        print(tx_hash)
 
     def get_user_account(self):
         return self.web3.eth.account.privateKeyToAccount(self.user_private_key)

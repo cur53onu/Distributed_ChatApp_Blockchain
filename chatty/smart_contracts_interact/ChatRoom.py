@@ -11,6 +11,9 @@ class ChatRoom(SMC):
     def getContractInstance(self):
         return SMC.getContractInstance(self, "ChatRoom.json")
 
+    def getDeployContractInstance(self):
+        return SMC.getContractInstance(self,"DeployContracts.json")
+
     def callGetName(self):
         instance = ChatRoom()
         return instance.getContractInstance().functions.getName().call()
@@ -31,3 +34,10 @@ class ChatRoom(SMC):
         print("Available ", instance.getBalance())
 
 
+    def deployChatRoom(self,chatRoomName,address):
+        instance=ChatRoom()
+        instance.customTransact(instance.getDeployContractInstance().functions.Deploychatrooms(chatRoomName))
+
+    def callGetChatRoomAddress(self,name):
+        instance=ChatRoom()
+        return instance.getDeployContractInstance().functions.getChatRoomAddress(name).call()
