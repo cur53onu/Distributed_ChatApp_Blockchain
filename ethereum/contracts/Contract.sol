@@ -2,8 +2,8 @@ pragma solidity ^0.4.17;
 pragma experimental ABIEncoderV2;
 
 contract DeployContracts{
-    address[] deployedUsers;
-    address[] deployedChatRooms;
+    address[] private deployedUsers;
+    address[] private deployedChatRooms;
     function deployChatRoom(string chat_room_name){
         address ContractAddress=new ChatRoom();
         ChatRoom newContract=ChatRoom(ContractAddress);
@@ -39,6 +39,14 @@ contract DeployContracts{
         address chat_room_address=getDeployedChatRoomAddressByName(chat_room_name_received);
         ChatRoom chat_room=ChatRoom(chat_room_address);
         return chat_room.getAllMessages();
+    }
+
+    function getDeployedProfileData(string user_name_received)view returns (string){
+        address profile_address=getDeployedProfileAddressByName(user_name_received);
+        if(0x0000000000000000000000000000000000000000==profile_address)
+        return "NO_DATA";
+        Profile user_profile=Profile(profile_address);
+        return user_profile.getUserData();
     }
 
     function getDeployedProfileAddressByName(string username)view returns (address){
@@ -137,6 +145,10 @@ contract Profile{
     address user_public_address;
     function getUserName()public view returns(string){
         return username;
+    }
+
+    function getUserData()public view returns(string){
+        return encrypted_data;
     }
 
     function addUser(string user_name_received,string encrypted_data_received,address user_public_address_received) public {
