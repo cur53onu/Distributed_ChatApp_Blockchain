@@ -4,7 +4,7 @@ import ast
 from termcolor import colored
 
 from chatApp.run.core.SmartContractInteract import SmartContractInteract as SMC
-from chatApp.print_output.print_output import printOutput
+from chatApp.run.print_output.print_output import printOutput
 
 
 class UserAuth(SMC):
