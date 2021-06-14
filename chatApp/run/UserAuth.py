@@ -1,11 +1,9 @@
 import os
 import ast
-
 from termcolor import colored
-
-from chatApp.run.core.SmartContractInteract import SmartContractInteract as SMC
-from chatApp.run.print_output.print_output import printOutput
-
+from SmartContractInteract import SmartContractInteract as SMC
+from print_output import printOutput
+filepath=os.path.dirname(os.path.abspath(__file__))
 
 class UserAuth(SMC):
     def __init__(self):
@@ -24,7 +22,7 @@ class UserAuth(SMC):
 
     def Register(self, user_name, password):
         web3 = self.getWeb3()
-        if not os.path.exists(SMC.getTemporaryDataFileName(self)):
+        if not os.path.exists(os.path.join(os.path.dirname(__file__), SMC.getTemporaryDataFileName(self))):
             printOutput("Run Prepearation Register", 'red')
             return
         if SMC.userExist(self,user_name):
@@ -65,7 +63,7 @@ class UserAuth(SMC):
             restored = self.web3.eth.account.privateKeyToAccount(privatekey_binary)
             if os.path.exists(SMC.getUserDataFileName(self)):
                 os.remove(SMC.getUserDataFileName(self))
-            with open(SMC.getUserDataFileName(self), "wb") as binary_file:
+            with open(os.path.join(os.path.dirname(__file__),SMC.getUserDataFileName(self)), "wb") as binary_file:
                 # Write text or bytes to the file
                 binary_file.write(privatekey_binary)
             with open(SMC.getUserDataFileName(self), "rb") as binary_file:

@@ -1,18 +1,20 @@
 import json
 from web3 import Web3
-
-
+import os
+filepath=os.path.dirname(os.path.abspath(__file__))
 class SmartContractInteract:
     def __init__(self):
-        self.file_path = 'JSON_Files/DeployContracts.json'
+        global filepath
+        self.file_path = '../JSON_Files/DeployContracts.json'
         self.gas = 1728712
-        with open('JSON_Files/data.json') as data_file:
+        FILENAME = os.path.join(os.path.dirname(__file__), '../JSON_Files/data.json')
+        with open(FILENAME) as data_file:
             data = json.load(data_file)
             self.deploy_contracts_address = data['contract_deploycontracts_address']
             self.infura_node_url = data['infura_node_url']
             self.web3 = Web3(Web3.HTTPProvider(self.infura_node_url))
-            self.tempdatafilename = data['user_temporarydata_file_name']
-            self.userdatafilename = data['user_privatekey_file_name']
+            self.tempdatafilename = '../'+data['user_temporarydata_file_name']
+            self.userdatafilename = '../'+data['user_privatekey_file_name']
             self.user_account = None
 
     def getContractProfileAddress(self):

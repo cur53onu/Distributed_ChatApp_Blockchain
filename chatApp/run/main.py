@@ -1,5 +1,5 @@
-from userauth.UserAuth import UserAuth as userAuth
-from core.InteractDeployContracts import InteractDeployContracts
+from UserAuth import UserAuth as userAuth
+from InteractDeployContracts import InteractDeployContracts
 
 
 def login(username, password):
@@ -23,6 +23,7 @@ def interact():
 
 
 if __name__ == '__main__':
+    # register('cur53','cur53')
     login("cur53", "cur53")
-    print(interact())
+    interact()
     logout()
