@@ -13,15 +13,20 @@ class UserAuth(SMC):
         pass
 
     def PrepRegister(self):
-        account = self.web3.eth.account.create()
+        web3= SMC.getWeb3(self)
+        print(web3)
+        account = web3.eth.account.create()
         printOutput("Your Account is Ready For Registration!!!" +
                     "\n>>> Your Public Address is: " + str(account.address) +
                     "\n>>> Transfer some ether to this and come back for registration!!!" + "\n\n" + str(
             account.address) + "\n\n", "blue")
+        privatekey_binary=account.privateKey
+        with open(os.path.join(os.path.dirname(__file__), SMC.getTemporaryDataFileName(self)), "wb") as binary_file:
+            binary_file.write(privatekey_binary)
         return account
 
     def Register(self, user_name, password):
-        web3 = self.getWeb3()
+        web3 = SMC.getWeb3(self)
         if not os.path.exists(os.path.join(os.path.dirname(__file__), SMC.getTemporaryDataFileName(self))):
             printOutput("Run Prepearation Register", 'red')
             return
