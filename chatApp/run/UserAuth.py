@@ -51,8 +51,8 @@ class UserAuth(SMC):
         self.account = account_received
         if value == True:
             printOutput("Registered successfully..." + "\n>>> Name " + user_name
-                        + "\n>>> Public Address: " + str(self.account.address)
-                        + "\n>>> Balance : " + str(self.web3.eth.getBalance(self.account.address)), "blue")
+                        + "\n>>> Public Address: " + str(self.account), "blue")
+                        # + "\n>>> Balance : " + str(self.web3.eth.getBalance(self.account.address)), "blue")
 
     def Login(self, username, password):
         web3 = SMC.getWeb3(self)

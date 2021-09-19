@@ -1,12 +1,12 @@
 import threading
-import time
-
+import sys
 from SmartContractInteract import SmartContractInteract as SMC
 from UserAuth import UserAuth as userAuth
 import os
+from print_output import *
 
 filepath = os.path.dirname(os.path.abspath(__file__))
-
+run_threads = True
 
 
 
@@ -20,6 +20,7 @@ class InteractDeployContracts(SMC):
         u = userAuth()
         self.userAuthVariable = userAuth()
         self.username = username
+        self.msgSize = 0
         if u.Login(username, password) == False:
             return
 
@@ -37,32 +38,45 @@ class InteractDeployContracts(SMC):
             print("Error")
             return
 
-    def getMessages(self):
-        while True:
-            if self.username==None:
-                break
-            time.sleep(5)
-            print("\n")
-            print(self.callGetMessagesFromChatRoomByName(self.chatRoomName))
-            print("\n")
-        
+    def getMsg(self):
+        self.msgSize = len(self.callGetMessagesFromChatRoomByName(self.chatRoomName))
+        global run_threads
+        while run_threads:
+            curr_msg = self.callGetMessagesFromChatRoomByName(self.chatRoomName)
+            if self.msgSize < len(curr_msg):
+                for i in range(self.msgSize,len(curr_msg)):
+                    msg = curr_msg[i]
+                    if self.username != msg[0]:
+                        printMsg(msg[0],msg[1])
+                self.msgSize = len(curr_msg)
+        print('quitting getMsg...')
+        return
 
     def interactRoom(self):
-        inputSetter = "(" + self.username + ":" + self.chatRoomName + ")>>>"
-        while True:
-            time.sleep(2)
-            query = input(inputSetter)
+        listenMsgThread = threading.Thread(target=self.getMsg)
+        listenMsgThread.start()
+        global run_threads
+        run_threads = True
+        while run_threads:
+            # query = input(inputSetter)
+            query = sys.stdin.readline().rstrip('\n')
             if query == "add":
-                chatRoomName = input("chatroom_name: ")
+                chatRoomName = self.chatRoomName
                 username = input("username: ")
                 self.transactAddUserToChatRoomByUserName(chatRoomName, username)
             if query == "getMsg":
-                print(self.callGetMessagesFromChatRoomByName(self.chatRoomName))
+                curr_msg = self.callGetMessagesFromChatRoomByName(self.chatRoomName)
+                print(len(curr_msg))
+                print(curr_msg)
             if query == "exitRoom":
+                # os.system("kill `pgrep xterm`")
+                run_threads = False
                 break
             else:
                 msg = query
                 self.transactAddMessage(self.chatRoomName, self.username, msg)
+        listenMsgThread.join()
+        return
 
     def run(self):
         inputSetter = "(" + self.username + ")>>>"
@@ -71,6 +85,7 @@ class InteractDeployContracts(SMC):
             if value == "exit":
                 self.userAuthVariable.Logout()
                 self.username=None
+                os._exit(1)
                 return
             if value == "createChatRoom":
                 chatRoomName = input("name: ")
@@ -81,10 +96,12 @@ class InteractDeployContracts(SMC):
             if value == "switchRoom":
                 name = input("Switch ChatRoom: ")
                 self.chatRoomName = name
-                fetchMsgThread = threading.Thread(target=self.getMessages)
-                fetchMsgThread.start()
-                interactRoom = threading.Thread(target=self.interactRoom)
-                interactRoom.start()
+                # fetchMsgThread = threading.Thread(target=self.getMessages)
+                # fetchMsgThread.start()
+                # interactRoom = threading.Thread(target=self.interactRoom)
+                # interactRoom.start()
+                self.interactRoom()
+
 
             else:
                 print(value)

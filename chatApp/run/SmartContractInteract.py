@@ -1,4 +1,7 @@
 import json
+import sys
+from print_output import *
+
 from web3 import Web3
 import os
 from datetime import date
@@ -65,16 +68,26 @@ class SmartContractInteract:
         try:
             signed = instance.user_account.signTransaction(builtTransaction)
             tx_hash = instance.web3.eth.sendRawTransaction(signed.rawTransaction)
-            return True, instance.user_account
-        except ValueError:
+            return True, tx_hash
+        except ValueError as v:
+            print(v)
             print("No Balance!!!")
-            return False
+            return False, None
 
     def getTemporaryDataFileName(self):
         return self.tempdatafilename
 
     def getUserDataFileName(self):
         return self.userdatafilename
+
+    def checkStatusOfTransaction(self,tx_hash):
+        debugOutput('Sending','red')
+        while True:
+            trx = self.web3.eth.get_transaction(tx_hash)
+            if trx.blockNumber is not None:
+                break
+        printOutput('Transaction sent!!!','green')
+        return
 
     def transactAddUser(self, user_name, encrypted_data):
         instance = SmartContractInteract()
@@ -100,13 +113,17 @@ class SmartContractInteract:
 
     def transactAddUserToChatRoomByUserName(self,chatroom_name,username):
         instance=SmartContractInteract()
-        return instance.customTransact(instance.getContractInstance().functions.addUserToChatRoomByUserName(chatroom_name,username))
-
+        val = instance.customTransact(instance.getContractInstance().functions.addUserToChatRoomByUserName(chatroom_name,username))
+        if val[0]:
+            self.checkStatusOfTransaction(val[1])
+        return
     def transactAddMessage(self,chatroom_name,username,message):
         instance=SmartContractInteract()
         today = str(date.today())
-        return instance.customTransact(instance.getContractInstance().functions.addMessage(chatroom_name,username,message,today))
-
+        val = instance.customTransact(instance.getContractInstance().functions.addMessage(chatroom_name,username,message,today))
+        if val[0]:
+            self.checkStatusOfTransaction(val[1])
+        return
     def callGetMessagesFromChatRoomByName(self,chatroom_name):
         instance=SmartContractInteract()
         return instance.getContractInstance().functions.getMessagesFromChatRoomByName(chatroom_name).call()

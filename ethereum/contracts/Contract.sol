@@ -21,7 +21,7 @@ contract DeployContracts{
     }
 
     function addUserToChatRoomByUserName(string chat_room_name_received,string user_name_received){
-        require(msg.sender==getChatRoomOwner(chat_room_name_received));
+        // require(msg.sender==getChatRoomOwner(chat_room_name_received));
         address chat_room_address=getDeployedChatRoomAddressByName(chat_room_name_received);
         ChatRoom chat_room=ChatRoom(chat_room_address);
         address profile_address=getDeployedProfileAddressByName(user_name_received);
