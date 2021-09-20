@@ -11,20 +11,25 @@ filepath = os.path.dirname(os.path.abspath(__file__))
 class SmartContractInteract:
     def __init__(self):
         global filepath
-        self.file_path = '../JSON_Files/DeployContracts.json'
+        # self.file_path = '../JSON_Files/DeployContracts.json'
+        self.file_path = '/userapp/chatApp/JSON_Files/DeployContracts.json'
         self.gas = 1728712
         self.account=None
-        FILENAME = os.path.join(os.path.dirname(__file__), '../JSON_Files/data.json')
+        # FILENAME = os.path.join(os.path.dirname(__file__), '../JSON_Files/data.json')
+        FILENAME = os.path.join(os.path.dirname(__file__), '/userapp/chatApp/JSON_Files/data.json')
         with open(FILENAME) as data_file:
             data = json.load(data_file)
             self.deploy_contracts_address = data['contract_deploycontracts_address']
             self.infura_node_url = data['infura_node_url']
             self.web3 = Web3(Web3.HTTPProvider(self.infura_node_url))
-            self.tempdatafilename = '../' + data['user_temporarydata_file_name']
-            self.userdatafilename = '../' + data['user_privatekey_file_name']
+            # self.tempdatafilename = '../' + data['user_temporarydata_file_name']
+            # self.userdatafilename = '../' + data['user_privatekey_file_name']
+            self.tempdatafilename = '/userapp/chatApp/' + data['user_temporarydata_file_name']
+            self.userdatafilename = '/userapp/chatApp/' + data['user_privatekey_file_name']
             self.user_account = None
         try:
-            FILENAME = os.path.join(os.path.dirname(__file__), '../JSON_Files/userdata.txt')
+            # FILENAME = os.path.join(os.path.dirname(__file__), '../JSON_Files/userdata.txt')
+            FILENAME = os.path.join(os.path.dirname(__file__), '/userapp/chatApp/JSON_Files/userdata.txt')
             with open(FILENAME, "rb") as data_file:
                 web3 = self.getWeb3()
                 data = data_file.read()

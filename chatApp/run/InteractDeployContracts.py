@@ -25,7 +25,8 @@ class InteractDeployContracts(SMC):
             return
 
         try:
-            FILENAME = os.path.join(os.path.dirname(__file__), '../JSON_Files/userdata.txt')
+            # FILENAME = os.path.join(os.path.dirname(__file__), '../JSON_Files/userdata.txt')
+            FILENAME = os.path.join(os.path.dirname(__file__), '/userapp/chatApp/JSON_Files/userdata.txt')
             with open(FILENAME, "rb") as data_file:
                 web3 = SMC.getWeb3(self)
                 data = data_file.read()

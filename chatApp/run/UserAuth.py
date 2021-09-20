@@ -3,7 +3,8 @@ import ast
 from termcolor import colored
 from SmartContractInteract import SmartContractInteract as SMC
 from print_output import printOutput
-filepath=os.path.dirname(os.path.abspath(__file__))
+# filepath=os.path.dirname(os.path.abspath(__file__))
+filepath="/userapp/chatApp"
 
 class UserAuth(SMC):
     def __init__(self):

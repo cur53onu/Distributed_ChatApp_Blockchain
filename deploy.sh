@@ -1,5 +1,9 @@
 #!/bin/bash
-rm ./ethereum/build/*
+#docker
 node ./ethereum/compile.js
-cp ./ethereum/build/* ./chatty/JSON_Files
+cp ./ethereum/build/* ./chatApp/JSON_Files
 node ./ethereum/deploy.js
+#rm -r ../../ethereum/build
+#node ../../ethereum/compile.js
+#cp ../../ethereum/build/* ../JSON_Files
+#node ../../ethereum/deploy.js
