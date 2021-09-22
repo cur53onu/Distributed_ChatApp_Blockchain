@@ -1,8 +1,6 @@
 import threading
-import sys
 from SmartContractInteract import SmartContractInteract as SMC
 from UserAuth import UserAuth as userAuth
-import os
 from print_output import *
 
 filepath = os.path.dirname(os.path.abspath(__file__))
@@ -25,8 +23,7 @@ class InteractDeployContracts(SMC):
             return
 
         try:
-            # FILENAME = os.path.join(os.path.dirname(__file__), '../JSON_Files/userdata.txt')
-            FILENAME = os.path.join(os.path.dirname(__file__), '/userapp/chatApp/JSON_Files/userdata.txt')
+            FILENAME = os.path.join(os.path.dirname(__file__), '../JSON_Files/userdata.txt')
             with open(FILENAME, "rb") as data_file:
                 web3 = SMC.getWeb3(self)
                 data = data_file.read()
@@ -59,7 +56,6 @@ class InteractDeployContracts(SMC):
         global run_threads
         run_threads = True
         while run_threads:
-            # query = input(inputSetter)
             query = sys.stdin.readline().rstrip('\n')
             if query == "add":
                 chatRoomName = self.chatRoomName
@@ -70,7 +66,6 @@ class InteractDeployContracts(SMC):
                 print(len(curr_msg))
                 print(curr_msg)
             if query == "exitRoom":
-                # os.system("kill `pgrep xterm`")
                 run_threads = False
                 break
             else:
@@ -97,10 +92,6 @@ class InteractDeployContracts(SMC):
             if value == "switchRoom":
                 name = input("Switch ChatRoom: ")
                 self.chatRoomName = name
-                # fetchMsgThread = threading.Thread(target=self.getMessages)
-                # fetchMsgThread.start()
-                # interactRoom = threading.Thread(target=self.interactRoom)
-                # interactRoom.start()
                 self.interactRoom()
 
 

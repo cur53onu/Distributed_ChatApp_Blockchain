@@ -3,8 +3,7 @@ import ast
 from termcolor import colored
 from SmartContractInteract import SmartContractInteract as SMC
 from print_output import printOutput
-# filepath=os.path.dirname(os.path.abspath(__file__))
-filepath="/userapp/chatApp"
+filepath=os.path.dirname(os.path.abspath(__file__))
 
 class UserAuth(SMC):
     def __init__(self):
@@ -53,12 +52,10 @@ class UserAuth(SMC):
         if value == True:
             printOutput("Registered successfully..." + "\n>>> Name " + user_name
                         + "\n>>> Public Address: " + str(self.account), "blue")
-                        # + "\n>>> Balance : " + str(self.web3.eth.getBalance(self.account.address)), "blue")
 
     def Login(self, username, password):
         web3 = SMC.getWeb3(self)
         profile_addr = SMC.userExist(self, username)
-        # print(SMC.callGetUserData(self,username))
         if not profile_addr:
             printOutput("No user", 'red')
             return
@@ -86,8 +83,6 @@ class UserAuth(SMC):
         return False
 
     def Clear(self):
-        # if os.path.exists(SMC.getTemporaryDataFileName(self)):
-        #     os.remove(SMC.getTemporaryDataFileName(self))
         if os.path.exists(SMC.getUserDataFileName(self)):
             os.remove(SMC.getUserDataFileName(self))
 

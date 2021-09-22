@@ -1,5 +1,5 @@
 import os
-
+from ExitHandler import exit_handler
 from UserAuth import UserAuth as userAuth
 from InteractDeployContracts import InteractDeployContracts
 import subprocess as sp
@@ -19,15 +19,12 @@ def interact(username, password):
     user.run()
     return user
 
-
-if __name__ == '__main__':
-    # register('cur53','cur53')
+def runApplication():
     try:
         val = input("New Contract Instance : ")
         if val == "y":
-            # output = sp.getoutput("../../deploy.sh")
-            path=os.path.join(os.path.dirname(__file__), '../../deploy.sh')
-            print(sp.getoutput("pwd"))
+            print(sp.getoutput("../../deploy.sh"))
+            path="../../deploy.sh"
             output = sp.getoutput(path)
             print(output)
 
@@ -51,3 +48,14 @@ if __name__ == '__main__':
         interact(username, password)
     except EOFError:
         pass
+
+def main():
+    try:
+        runApplication()
+    except:
+        print()
+    finally:
+        exit_handler()
+
+if __name__ == '__main__':
+    main()
