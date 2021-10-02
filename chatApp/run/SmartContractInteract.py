@@ -1,11 +1,9 @@
 import json
 from print_output import *
-
 from web3 import Web3
 import os
 from datetime import date
 filepath = os.path.dirname(os.path.abspath(__file__))
-
 
 class SmartContractInteract:
     def __init__(self):
@@ -121,8 +119,8 @@ class SmartContractInteract:
         instance=SmartContractInteract()
         today = str(date.today())
         val = instance.customTransact(instance.getContractInstance().functions.addMessage(chatroom_name,username,message,today))
-        if val[0]:
-            self.checkStatusOfTransaction(val[1])
+        # if val[0]:
+        #     self.checkStatusOfTransaction(val[1])
         return
     def callGetMessagesFromChatRoomByName(self,chatroom_name):
         instance=SmartContractInteract()

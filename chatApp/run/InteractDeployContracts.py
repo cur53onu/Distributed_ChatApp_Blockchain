@@ -1,8 +1,7 @@
-import threading
 from SmartContractInteract import SmartContractInteract as SMC
 from UserAuth import UserAuth as userAuth
 from print_output import *
-
+from TerminalHandler import terminalHandlerMain
 filepath = os.path.dirname(os.path.abspath(__file__))
 run_threads = True
 
@@ -36,43 +35,8 @@ class InteractDeployContracts(SMC):
             print("Error")
             return
 
-    def getMsg(self):
-        self.msgSize = len(self.callGetMessagesFromChatRoomByName(self.chatRoomName))
-        global run_threads
-        while run_threads:
-            curr_msg = self.callGetMessagesFromChatRoomByName(self.chatRoomName)
-            if self.msgSize < len(curr_msg):
-                for i in range(self.msgSize,len(curr_msg)):
-                    msg = curr_msg[i]
-                    if self.username != msg[0]:
-                        printMsg(msg[0],msg[1])
-                self.msgSize = len(curr_msg)
-        print('quitting getMsg...')
-        return
-
     def interactRoom(self):
-        listenMsgThread = threading.Thread(target=self.getMsg)
-        listenMsgThread.start()
-        global run_threads
-        run_threads = True
-        while run_threads:
-            query = sys.stdin.readline().rstrip('\n')
-            if query == "add":
-                chatRoomName = self.chatRoomName
-                username = input("username: ")
-                self.transactAddUserToChatRoomByUserName(chatRoomName, username)
-            if query == "getMsg":
-                curr_msg = self.callGetMessagesFromChatRoomByName(self.chatRoomName)
-                print(len(curr_msg))
-                print(curr_msg)
-            if query == "exitRoom":
-                run_threads = False
-                break
-            else:
-                msg = query
-                self.transactAddMessage(self.chatRoomName, self.username, msg)
-        listenMsgThread.join()
-        return
+        terminalHandlerMain(self.chatRoomName, self.username)
 
     def run(self):
         inputSetter = "(" + self.username + ")>>>"
@@ -93,8 +57,6 @@ class InteractDeployContracts(SMC):
                 name = input("Switch ChatRoom: ")
                 self.chatRoomName = name
                 self.interactRoom()
-
-
             else:
                 print(value)
 
