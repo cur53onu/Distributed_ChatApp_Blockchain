@@ -1,8 +1,11 @@
 import os
+import sys
+import shutil
 from ExitHandler import exit_handler
 from UserAuth import UserAuth as userAuth
 from InteractDeployContracts import InteractDeployContracts
 import subprocess as sp
+from Naked.toolshed.shell import execute_js
 filepath = os.path.dirname(os.path.abspath(__file__))
 def logout():
     u = userAuth()
@@ -23,11 +26,10 @@ def runApplication():
     try:
         val = input("New Contract Instance : ")
         if val == "y":
-            print(sp.getoutput("../../deploy.sh"))
-            path="../../deploy.sh"
-            output = sp.getoutput(path)
-            print(output)
-
+            deployjs_path="../../ethereum/deploy.js"
+            success = execute_js(deployjs_path)
+            if not success:
+                sys.exit(0)
         print("1)Register\n2)Login")
         choice = int(input("Enter Your Choice : "))
         if choice == 1:
@@ -41,11 +43,12 @@ def runApplication():
             username = input("username:")
             password = input("password:")
             register(username, password)
-        strLogin = ">>> Login <<<" + "\nEnter Username and Password"
-        print(strLogin)
-        username = input("username:")
-        password = input("password:")
-        interact(username, password)
+        else:
+            strLogin = ">>> Login <<<" + "\nEnter Username and Password"
+            print(strLogin)
+            username = input("username:")
+            password = input("password:")
+            interact(username, password)
     except EOFError:
         pass
 

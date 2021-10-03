@@ -18,6 +18,7 @@ idna==2.10
 jsonschema==3.2.0
 lru-dict==1.1.7
 multiaddr==0.0.9
+Naked==0.1.31
 netaddr==0.8.0
 notify2==0.3.1
 parsimonious==0.8.1
@@ -28,6 +29,7 @@ pyinstaller==4.5.1
 pyinstaller-hooks-contrib==2021.3
 pyrsistent==0.17.3
 pyterm==0.2.0
+PyYAML==5.4.1
 requests==2.25.1
 rlp==2.0.1
 six==1.16.0

@@ -41,7 +41,7 @@ class UserAuth(SMC):
 
         if (self.web3.eth.getBalance(self.account.address)) == 0:
             printOutput("Wallet empty add some ethers and come back"
-                        + ">>> Public Address : " + str(self.account.address), 'red')
+                        + " Public Address : " + str(self.account.address), 'red')
             return
 
         encrypted = self.account.encrypt(password)

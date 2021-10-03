@@ -136,4 +136,3 @@ temp.txt
 node_modules
 package-lock.json
 .idea
-deploy.js
