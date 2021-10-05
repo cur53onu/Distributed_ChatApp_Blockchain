@@ -17,7 +17,7 @@ const provider = new HDWalletProvider(
 );
 const fs = require('fs')
 const path = require("path");
-const filePathNormal = '../JSON_Files/data.json'
+const filePathNormal = 'JSON_Files/data.json'
 function jsonReader(filePath, cb) {
     fs.readFile(filePath, (err, fileData) => {
         if (err) {

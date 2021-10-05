@@ -28,12 +28,12 @@ def login():
 
 def runApplication():
     try:
-        # val = input("New Contract Instance : ")
-        # if val == "y":
-        #     deployjs_path="../../ethereum/deploy.js"
-        #     success = execute_js(deployjs_path)
-        #     if not success:
-        #         sys.exit(0)
+        val = input("New Contract Instance : ")
+        if val == "y":
+            deployjs_path="ethereum/deploy.js"
+            success = execute_js(deployjs_path)
+            if not success:
+                sys.exit(0)
         print("1)Register\n2)Login")
         choice = int(input("Enter Your Choice : "))
         if choice == 1:
@@ -48,8 +48,8 @@ def main():
         runApplication()
     except:
         print()
-    # finally:
-    #     exit_handler()
+    finally:
+        exit_handler()
 
 if __name__ == '__main__':
     main()
