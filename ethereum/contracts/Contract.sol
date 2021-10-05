@@ -2,16 +2,17 @@ pragma solidity ^0.4.17;
 pragma experimental ABIEncoderV2;
 
 contract DeployContracts{
-    address[] private deployedUsers;
-    address[] private deployedChatRooms;
-    struct chatRooms {
+    address[] public deployedUsers;
+    address[] public deployedChatRooms;
+    struct chatRoomStruct {
         string chatRoomName;
-        string ownerName;
+        address ownerAddress;
         bool chatRoomType;
     }
-    mapping(address=>chatRooms) private address_to_chatRoom_map;
-    chatRooms[] private chat_rooms_array;
-    mapping(address=>string) private public_address_to_username;
+    chatRoomStruct chatRoomStructVar;
+    mapping(address=>chatRoomStruct) public address_to_chatRoom_map;
+    chatRoomStruct[] public chat_rooms_array;
+    mapping(address=>string) public public_address_to_username;
 
     function deployChatRoom(string chat_room_name,bool privateChatRoom) public{
         string username = public_address_to_username[msg.sender];
@@ -21,12 +22,8 @@ contract DeployContracts{
         newContract.setName(chat_room_name);
         newContract.setOwner(getUsersProfileAddress());
         newContract.setChatRoomType(privateChatRoom);
+        newContract.setOwnerUsername(username);
         newContract.addUser(getUsersProfileAddress(),username);
-        chatRooms build_room = address_to_chatRoom_map[ContractAddress];
-        build_room.chatRoomName=chat_room_name;
-        build_room.ownerName=username;
-        build_room.chatRoomType=privateChatRoom;
-        chat_rooms_array.push(build_room);
         deployedChatRooms.push(ContractAddress);
     }
 
@@ -41,6 +38,7 @@ contract DeployContracts{
         }
         revert();
     }
+
 
     function addUserToChatRoomByUserName(string chat_room_name_received, string user_name_received) public{
         string owner_username = public_address_to_username[msg.sender];
@@ -81,8 +79,6 @@ contract DeployContracts{
 
     function getDeployedProfileData()public view returns (string){
         address profile_address=getUsersProfileAddress();
-        if(0x0000000000000000000000000000000000000000==profile_address)
-        return "NO_DATA";
         Profile user_profile=Profile(profile_address);
         return user_profile.getUserData();
     }
@@ -96,9 +92,10 @@ contract DeployContracts{
                 return deployedUsers[i];
             }
         }
+        throw;
     }
 
-    function getDeployedProfileAddressByName(string username)private returns(address){
+    function getDeployedProfileAddressByName(string username)public returns(address){
         for(uint i=0;i<deployedUsers.length;i++)
         {
             Profile prof=Profile(deployedUsers[i]);
@@ -148,13 +145,17 @@ contract DeployContracts{
         }
         return false;
     }
-
-    function getAllChatRooms()public view returns(chatRooms[]){
-        return chat_rooms_array;
-    }
-
     function getInfo() public view returns(uint,uint){
         return (deployedChatRooms.length,deployedUsers.length);
+    }
+    function getDeployedChatRoomInfo() public view returns(string[]){
+        string[] array;
+        for(uint i=0;i<deployedChatRooms.length;i++)
+        {
+            ChatRoom room=ChatRoom(deployedChatRooms[i]);
+            array.push(room.getChatRoomInfo());
+        }
+        return array;
     }
 
 }
@@ -162,6 +163,7 @@ contract DeployContracts{
 contract ChatRoom{
     string chat_room_name;
     bool privateChatRoom;
+    string ownerUserName;
     address owner_address;
     mapping(address=>string) users_to_address;
     struct Message {
@@ -178,6 +180,12 @@ contract ChatRoom{
     }
     function setOwner(address owner_address_received) public{
         owner_address=owner_address_received;
+    }
+    function setOwnerUsername(string username) public{
+        ownerUserName=username;
+    }
+    function getOwnerUsername()public view returns(string){
+        return ownerUserName;
     }
 
     function addUser(address user_profile_address,string username) public{
@@ -217,6 +225,15 @@ contract ChatRoom{
     }
     function getChatRoomType()public view returns(bool){
         return privateChatRoom;
+    }
+    function append(string a, string b, string c, string d, string e, string f) internal pure returns (string) {
+        return string(abi.encodePacked(a, b, c, d, e, f));
+    }
+    function getChatRoomInfo()public view returns(string){
+        if(privateChatRoom){
+            return append("RoomName: " , chat_room_name , " RoomType: " , " PrivateRoom " , "RoomOwner: " , ownerUserName);
+        }
+        return append("RoomName: " , chat_room_name , " RoomType: " , " PublicRoom " , "RoomOwner: " , ownerUserName);
     }
 
 }

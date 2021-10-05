@@ -1,4 +1,5 @@
-const HDWalletProvider = require('truffle-hdwallet-provider');
+//const HDWalletProvider = require('truffle-hdwallet-provider');
+const HDWalletProvider = require('@truffle/hdwallet-provider');
 const Web3  = require('web3');
 const compiledDeployedChatRooms = require('./build/DeployContracts.json');
 const prompt = require('prompt-sync')();
@@ -8,10 +9,11 @@ if(mnemonic == null || mnemonic.split(' ').length != 12){
     console.log('quitting!!!');
     process.exit(1);
 }
+const rinkby_url = prompt('Enter your rinkeby url?: ');
 
 const provider = new HDWalletProvider(
   mnemonic,
-  'https://rinkeby.infura.io/v3/0a5866cdc4fb48d8808e336cd05a68ff'
+  rinkby_url
 );
 const fs = require('fs')
 const path = require("path");

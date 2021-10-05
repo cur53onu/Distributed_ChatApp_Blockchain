@@ -1,3 +1,4 @@
+import json
 import os
 import ast
 import sys
@@ -16,6 +17,7 @@ class UserAuth(SMC):
         self.password = None
         self.register = ""
         self.account = None
+        self.public_address = None
 
     def PrepRegister(self):
         if not os.path.isfile(self.getTemporaryDataFileName()):
@@ -49,7 +51,6 @@ class UserAuth(SMC):
             print('Current balance: ', (self.web3.eth.getBalance(self.account.address)))
         self.username = input("username:")
         self.password = input("password:")
-        web3 = self.getWeb3()
         if not os.path.exists(self.getTemporaryDataFileName()):
             printOutput("Run Prepearation Register", 'red')
             return
@@ -68,12 +69,17 @@ class UserAuth(SMC):
 
     def Login(self):
         web3 = SMC.getWeb3(self)
-        profile_addr = SMC.userExist(self, self.username)
+        username = input("username:")
+        password = input("password:")
+        self.setUserNameAndPassword(username,password)
+        profile_addr = self.userExist(self.username)
         if not profile_addr:
             printOutput("No user", 'red')
             return
 
-        res = ast.literal_eval(SMC.callGetUserData(self, name=self.username))
+        addr = input('Required public address: ')
+        self.public_address = addr
+        res = ast.literal_eval(self.callGetUserData(addr))
         try:
             privatekey_binary = self.web3.eth.account.decrypt(res, self.password)
             restored = self.web3.eth.account.privateKeyToAccount(privatekey_binary)

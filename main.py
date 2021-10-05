@@ -22,10 +22,7 @@ def register():
 def login():
     strLogin = ">>> Login <<<" + "\nEnter Username and Password"
     print(strLogin)
-    username = input("username:")
-    password = input("password:")
     user = InteractDeployContracts()
-    user.setUserNameAndPassword(username,password)
     user.run()
     return user
 
