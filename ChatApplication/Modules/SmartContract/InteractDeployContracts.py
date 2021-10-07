@@ -24,18 +24,22 @@ class InteractDeployContracts(UserAuth):
 
     def roomInfo(self):
         printOutput('Chat Rooms Info', 'yellow')
-        listOfRooms = self.callgetAllChatRooms()
+        printOutput('Public chat rooms are green and private are red in color', 'yellow')
+        listOfRooms = self.callgetAllChatRooms(self.public_address)
+        if not listOfRooms:
+            printOutput("No Rooms Available\nPlease create some rooms to get started!!!", "red")
+            return
         for i in range(0, len(listOfRooms)):
-            split_data = listOfRooms[i].split(' ')
-            if split_data[3]=='PrivateRoom':
-                printOutput(listOfRooms[i],'red')
-            else:
-                printOutput(listOfRooms[i],'blue')
+            color="green"
+            roomName, roomOwnerUsername, roomOwnerAddress, roomType = listOfRooms[i]
+            if roomType:
+                color="red"
+            printOutput("ChatRoomName: "+ str(roomName) +" ChatRoomOwner: " + str(roomOwnerUsername), color)
 
     def run(self):
         if self.Login():
-            # self.roomInfo()
-            inputSetter = "(" + self.username + ")>>>"
+            self.roomInfo()
+            inputSetter = "(" + self.username + ")<<<"
             while True:
                 value = input(inputSetter)
                 if value == "exit":
@@ -68,7 +72,10 @@ class InteractDeployContracts(UserAuth):
                 elif value == "switchRoom":
                     name = input("Switch ChatRoom: ")
                     self.chatRoomName = name
-                    self.interactRoom()
+                    if self.getAuthorizationForRoom(self.chatRoomName, self.username, self.public_address):
+                        self.interactRoom()
+                    else:
+                        printOutput("You are not authorized to enter in "+ self.chatRoomName +" room", "red")
                 elif value == "addUser":
                     chatRoomName = input("chat room name: ")
                     username = input("username : ")

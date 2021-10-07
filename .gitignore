@@ -136,3 +136,4 @@ JSON_Files/temp.txt
 node_modules
 package-lock.json
 .idea
+/JSON_Files/default.json

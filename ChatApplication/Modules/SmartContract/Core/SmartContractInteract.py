@@ -42,7 +42,7 @@ class SmartContractInteract:
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         fn_caller = calframe[1][3]
-        if fn_caller == 'Register':
+        if (fn_caller == 'transactRegisterUser'):
             Filename = self.getTemporaryDataFileName()
 
         with open(Filename, "rb") as binary_file:
@@ -95,6 +95,13 @@ class SmartContractInteract:
         val = self.customTransact(self.getContractInstance().functions.deployChatRoom(name,roomType))
         if val[0]:
             self.checkStatusOfTransaction(val[1])
+
+    def transactRegisterUser(self, username, password):
+        return self.customTransact(self.getContractInstance().functions.deployProfiles(username, password))
+
+    def callUserAddressExist(self, public_address):
+        return self.getContractInstance().functions.checkAccountExistWithPublicAddress().call({'from': public_address})
+
     def callGetChatRoomOwner(self, name, addr):
         return self.getContractInstance().functions.getChatRoomOwner(name).call({'from':addr})
 
@@ -118,5 +125,12 @@ class SmartContractInteract:
     def callGetMessagesFromChatRoomByName(self,chatroom_name, addr):
         return self.getContractInstance().functions.getMessagesFromChatRoomByName(chatroom_name).call({'from': addr})
 
-    def callgetAllChatRooms(self):
-        return self.getContractInstance().functions.getDeployedChatRoomInfo().call()
+    def callgetAllChatRooms(self, public_address):
+        data = []
+        listOfAddresses = self.getContractInstance().functions.getDeployedChatRooms().call({'from': public_address})
+        for address in listOfAddresses:
+            data.append(self.getContractInstance().functions.getDeployedChatRoomInfo(address).call({'from': public_address}))
+        return data
+
+    def getAuthorizationForRoom(self, chatRoomName, username ,public_address):
+        return self.getContractInstance().functions.checkUserPresent(chatRoomName, username).call({'from':public_address})

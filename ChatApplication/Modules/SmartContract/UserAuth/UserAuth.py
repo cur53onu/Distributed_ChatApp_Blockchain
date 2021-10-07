@@ -32,15 +32,23 @@ class UserAuth(SMC):
             with open(SMC.getTemporaryDataFileName(self), "wb") as binary_file:
                 binary_file.write(privatekey_binary)
             self.account = account
+            self.public_address = self.account.address
             return account
         else:
             with open(self.getTemporaryDataFileName(), "rb") as binary_file:
                 data = binary_file.read()
-                ax = (self.web3.eth.account.privateKeyToAccount(data))
-                self.account = ax
-                print('temp file present\nAccount address: ', ax.address)
+                account = (self.web3.eth.account.privateKeyToAccount(data))
+                self.account = account
+                self.public_address = account.address
+                print('temp file present\nAccount address: ', account.address)
 
     def Register(self):
+        if self.callUserAddressExist(self.public_address):
+            printOutput(
+                "User account with " + self.public_address + " already exist!!!\nCannot create new account with same public address",
+                "red")
+            return
+
         if (self.web3.eth.getBalance(self.account.address)) == 0:
             printOutput("Wallet empty add some ethers and come back"
                         + " Public Address : " + str(self.account.address), 'red')
@@ -49,6 +57,8 @@ class UserAuth(SMC):
                 pass
             print('\nEthers received.')
             print('Current balance: ', (self.web3.eth.getBalance(self.account.address)))
+        strRegister = ">>> Register <<<\nMake sure your account have ethers" + "\nEnter Username and Password"
+        printOutput(strRegister, "blue")
         self.username = input("username:")
         self.password = input("password:")
         if not os.path.exists(self.getTemporaryDataFileName()):
@@ -58,14 +68,14 @@ class UserAuth(SMC):
             print(colored(">>> Username exist choose different username", 'red'))
             return
 
-        encrypted = self.account.encrypt(self.password)
-        value, account_received = self.customTransact(
-            self.getContractInstance().functions.deployProfiles(self.username, str(encrypted)))
+        encrypted_password = self.account.encrypt(self.password)
+        value, account_received = self.transactRegisterUser(self.username, str(encrypted_password))
+
         if value == True:
             printOutput("Registered successfully..." + "\n>>> Name " + self.username
                         + "\n>>> Public Address: " + str(self.account.address), "blue")
-            printOutput('Wait till transaction sent!!!', 'blue')
-            time.sleep(15)
+        printOutput("Please wait for sometime until account gets added", "red")
+        time.sleep(15)
 
     def Login(self):
         web3 = SMC.getWeb3(self)
