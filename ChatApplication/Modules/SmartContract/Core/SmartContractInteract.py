@@ -1,4 +1,7 @@
 import json
+
+import urwid
+
 from ChatApplication.Modules.PrintOutput.print_output import *
 from web3 import Web3
 import os
@@ -9,7 +12,8 @@ class SmartContractInteract:
     def __init__(self):
         self.file_path = 'JSON_Files/DeployContracts.json'
         self.gas = 1728712
-        self.account=None
+        # self.account=None
+        self.user_account = None
         FILENAME = 'JSON_Files/data.json'
         with open(FILENAME) as data_file:
             data = json.load(data_file)
@@ -17,8 +21,7 @@ class SmartContractInteract:
             self.infura_node_url = data['infura_node_url']
             self.web3 = Web3(Web3.HTTPProvider(self.infura_node_url))
             self.tempdatafilename = data['user_temporarydata_file_name']
-            self.userdatafilename = data['user_privatekey_file_name']
-            self.user_account = None
+
 
     def getContractProfileAddress(self):
         return self.deploy_contracts_address
@@ -37,18 +40,18 @@ class SmartContractInteract:
         f.close()
         return con
 
-    def customTransact(self, function, filename=''):
-        Filename = self.getUserDataFileName()
-        curframe = inspect.currentframe()
-        calframe = inspect.getouterframes(curframe, 2)
-        fn_caller = calframe[1][3]
-        if (fn_caller == 'transactRegisterUser'):
-            Filename = self.getTemporaryDataFileName()
+    def customTransact(self, function):
+        # Filename = self.getUserDataFileName()
+        # curframe = inspect.currentframe()
+        # calframe = inspect.getouterframes(curframe, 2)
+        # fn_caller = calframe[1][3]
+        # if (fn_caller == 'transactRegisterUser'):
+        #     Filename = self.getTemporaryDataFileName()
 
-        with open(Filename, "rb") as binary_file:
-            data = binary_file.read()
-            ax = (self.web3.eth.account.privateKeyToAccount(data))
-            self.user_account = ax
+        # with open(Filename, "rb") as binary_file:
+        #     data = binary_file.read()
+        #     ax = (self.web3.eth.account.privateKeyToAccount(data))
+        #     self.user_account = ax
 
         builtTransaction = function.buildTransaction({
             'from': self.user_account.address,
@@ -66,9 +69,6 @@ class SmartContractInteract:
 
     def getTemporaryDataFileName(self):
         return self.tempdatafilename
-
-    def getUserDataFileName(self):
-        return self.userdatafilename
 
     def checkStatusOfTransaction(self,tx_hash):
         debugOutput('Sending','red')
@@ -122,8 +122,11 @@ class SmartContractInteract:
         if val[0]:
             self.checkStatusOfTransaction(val[1])
 
-    def callGetMessagesFromChatRoomByName(self,chatroom_name, addr):
-        return self.getContractInstance().functions.getMessagesFromChatRoomByName(chatroom_name).call({'from': addr})
+    def callGetMessagesFromChatRoomByName(self,chatroom_name, username, addr):
+        value = None
+        if self.getAuthorizationForRoom(chatroom_name, username, addr):
+            value = self.getContractInstance().functions.getMessagesFromChatRoomByName(chatroom_name).call({'from': addr})
+        return value
 
     def callgetAllChatRooms(self, public_address):
         data = []

@@ -9,19 +9,20 @@ run_threads = True
 class InteractDeployContracts(UserAuth):
     def __init__(self):
         UserAuth.__init__(self)
-        self.account = None
         self.chatRoomName = None
         self.msgSize = 0
 
     def interactRoom(self):
-        my_term = RoomTerminal(self, self.chatRoomName, self.username)
+        my_term = RoomTerminal(self, self.chatRoomName, self.username, self.public_address)
         my_term.loop = urwid.MainLoop(my_term)
         listenMsgThread = threading.Thread(target=my_term.getMsg)
         listenMsgThread.start()
         my_term.loop.run()
-        listenMsgThread.join()
+        try:
+            listenMsgThread.join()
+        except Exception as e:
+            print("exit")
         return
-
     def roomInfo(self):
         printOutput('Chat Rooms Info', 'yellow')
         printOutput('Public chat rooms are green and private are red in color', 'yellow')
