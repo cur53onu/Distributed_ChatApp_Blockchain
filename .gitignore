@@ -131,8 +131,9 @@ dmypy.json
 
 #Important JSON FILES
 data.json
-userdata.txt
-temp.txt
+JSON_Files/userdata.txt
+JSON_Files/temp.txt
 node_modules
 package-lock.json
 .idea
+/JSON_Files/default.json
