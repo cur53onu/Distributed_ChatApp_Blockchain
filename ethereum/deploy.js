@@ -1,6 +1,6 @@
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 const Web3  = require('web3');
-const compiledDeployedChatRooms = require('./build/DeployContracts.json');
+const compiledDeployedChatRooms = require('./build/MainContract.json');
 const prompt = require('prompt-sync')();
 const mnemonic = prompt('Enter your metamask mnemonic?: ');
 if(mnemonic == null || mnemonic.split(' ').length != 12){
@@ -28,7 +28,7 @@ function jsonReader(filePath, cb) {
         }
     })
 }
-
+const mainContractName = prompt('Enter your world name: ');
 const web3 = new Web3(provider);
 const deploy = async()=>{
     try{
@@ -40,7 +40,7 @@ const deploy = async()=>{
                 setTimeout(resolve, 50000);
                 var result =new web3.eth.Contract(
                     JSON.parse(compiledDeployedChatRooms.interface))
-                    .deploy({data : compiledDeployedChatRooms.bytecode})
+                    .deploy({data : compiledDeployedChatRooms.bytecode, arguments: [mainContractName]})
                     .send({gas: '6000000',from : accounts[0]}).
                     then(function(result){
                         console.log('Contract deployed to ', result.options.address)
@@ -51,18 +51,13 @@ const deploy = async()=>{
                       }
                       data.contract_deploycontracts_address = result.options.address
                       fs.writeFile(filePathNormal, JSON.stringify(data), (err) => {
-                            if (err) console.log('Error writing file:', err)
-                            })    
+                            if (err) console.log('Error writing file:', err)})
                         })
                     });
                 });
                 promise.then(function(val){
                     process.exit(0);
                   });
-                // promise.then(done=true)
-        // while(true){
-            // console.log(promise.pending);
-        // }
     }catch(err){
         console.log(err);
     }
