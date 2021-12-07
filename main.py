@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from ChatApplication.Modules.ExitHandler.ExitHandler import exit_handler
+from ChatApplication.Modules.SmartContract.Core.SmartContractInteract import SmartContractInteract
 from ChatApplication.Modules.SmartContract.UserAuth import UserAuth as userAuth
 from ChatApplication.Modules.SmartContract.InteractDeployContracts import InteractDeployContracts
 from ChatApplication.Modules.PrintOutput.print_output import printOutput
@@ -17,11 +18,11 @@ def logout():
 class MainClass:
 
     def __init__(self):
+        self.smc = SmartContractInteract()
         self.interactDeployedContracts = InteractDeployContracts()
 
     def register(self):
-        self.interactDeployedContracts.PrepRegister()
-        self.interactDeployedContracts.Register()
+        self.interactDeployedContracts.register()
         self.login()
 
     def login(self):
@@ -64,20 +65,23 @@ def runApplication(mainClassObj):
             mainClassObj.register()
         else:
             mainClassObj.login()
+        # mainClassObj.login()
+
     except EOFError:
         pass
 
 
 def main():
     mainClassObj = MainClass()
-    try:
-        runApplication(mainClassObj)
-    except:
-        print('Error')
-    finally:
-        pass
-        mainClassObj.logout()
-        exit_handler()
+    runApplication(mainClassObj)
+    # try:
+    #     runApplication(mainClassObj)
+    # except:
+    #     print('Error')
+    # finally:
+    #     pass
+        #mainClassObj.logout()
+        #exit_handler()
 
 
 if __name__ == '__main__':

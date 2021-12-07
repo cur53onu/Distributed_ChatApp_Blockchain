@@ -1,152 +1,88 @@
 pragma solidity ^0.4.17;
 pragma experimental ABIEncoderV2;
 
-contract DeployContracts {
+contract MainContract {
+    string private mainContractName;
     address[] private deployedUsers;
     address[] private deployedChatRooms;
-    struct chatRoomStruct {
+    struct chatRoomInfoStruct {
         string chatRoomName;
         string ownerUsername;
-        address ownerAddress;
+        address ownerProfileAddress;
         bool chatRoomType;
     }
 
-    chatRoomStruct chatRoomStructVar;
-    mapping(address => chatRoomStruct) private address_to_chatRoom_map;
-    chatRoomStruct[] private chat_rooms_array;
+    chatRoomInfoStruct chatRoomStructVar;
+    mapping(address => chatRoomInfoStruct) private addressToChatRoomMap;
+    chatRoomInfoStruct[] private chatRoomsArray;
     mapping(address => string) private public_address_to_username;
 
-    //Deploy contracts
-    function deployChatRoom(string chat_room_name, bool privateChatRoom)
-        public
-    {
-        string username = public_address_to_username[msg.sender];
-        require(validateUser());
-        address ContractAddress = new ChatRoom();
-        ChatRoom newContract = ChatRoom(ContractAddress);
-        newContract.setName(chat_room_name);
-        newContract.setOwner(getUsersProfileAddress());
-        newContract.setChatRoomType(privateChatRoom);
-        newContract.setOwnerUsername(username);
-        newContract.addUser(getUsersProfileAddress(), username);
-        chatRoomStruct build_room = address_to_chatRoom_map[ContractAddress];
-        build_room.chatRoomName = chat_room_name;
-        build_room.ownerUsername = username;
-        build_room.ownerAddress = getUsersProfileAddress();
-        build_room.chatRoomType = privateChatRoom;
-        chat_rooms_array.push(build_room);
-        deployedChatRooms.push(ContractAddress);
+    constructor(string mainContractNameReceived) public {
+        mainContractName = mainContractNameReceived;
     }
 
-    function deployProfiles(string username, string data) public {
+    // Deploy chat rooms
+    function deployChatRoom(
+        string chatRoomNameReceived,
+        bool isPrivateRoomReceived
+    ) public {
+        require(validateUser());
+        address newContractAddress = new ChatRoom(
+            chatRoomNameReceived,
+            getUserProfileAddress(),
+            isPrivateRoomReceived
+        );
+        ChatRoom chatRoomContract = ChatRoom(newContractAddress);
+        chatRoomInfoStruct storage buildRoom = addressToChatRoomMap[
+            newContractAddress
+        ];
+        buildRoom.chatRoomName = chatRoomNameReceived;
+        buildRoom.ownerUsername = chatRoomContract.getOwnerUsername();
+        buildRoom.ownerProfileAddress = getUserProfileAddress();
+        buildRoom.chatRoomType = isPrivateRoomReceived;
+        chatRoomsArray.push(buildRoom);
+        deployedChatRooms.push(newContractAddress);
+    }
+
+    // Deploy profiles
+    function deployProfile(
+        string usernameReceived,
+        string encryptedDataReceived
+    ) public {
         if (
             keccak256(
                 abi.encodePacked(public_address_to_username[msg.sender])
             ) == keccak256(abi.encodePacked(""))
         ) {
-            address profile = new Profile();
-            Profile prof = Profile(profile);
-            prof.addUser(username, data, msg.sender);
+            address profile = new Profile(
+                usernameReceived,
+                encryptedDataReceived,
+                msg.sender
+            );
             deployedUsers.push(profile);
-            public_address_to_username[msg.sender] = username;
+            public_address_to_username[msg.sender] = usernameReceived;
             return;
         }
-        revert();
     }
 
-    //Add data to contracts
-    function addUserToChatRoomByUserName(
-        string chat_room_name_received,
-        string user_name_received
-    ) public {
-        string owner_username = public_address_to_username[msg.sender];
+    // getters
+    function getAllDeployedChatRooms() public view returns (address[]) {
         require(validateUser());
-        require(checkUserIsOwner(chat_room_name_received));
-        address chat_room_address = getDeployedChatRoomAddressByName(
-            chat_room_name_received
-        );
-        ChatRoom chat_room = ChatRoom(chat_room_address);
-        address profile_address = getDeployedProfileAddressByName(
-            user_name_received
-        );
-        chat_room.addUser(profile_address, user_name_received);
+        return deployedChatRooms;
     }
 
-    function addMessage(
-        string chat_room_name_received,
-        string message_received,
-        string timestamp_received
-    ) public {
-        string username = public_address_to_username[msg.sender];
-        require(checkUserPresent(chat_room_name_received, username));
-        address chat_room_address = getDeployedChatRoomAddressByName(
-            chat_room_name_received
-        );
-        ChatRoom chat_room = ChatRoom(chat_room_address);
-        chat_room.addMessage(
-            msg.sender,
-            username,
-            message_received,
-            timestamp_received
-        );
-    }
-
-    function setChatRoomType(string chat_room_name_received, bool roomType)
-        public
-    {
-        string username = public_address_to_username[msg.sender];
-        require(validateUser());
-        require(checkUserIsOwner(chat_room_name_received));
-        address roomAddress = getDeployedChatRoomAddressByName(
-            chat_room_name_received
-        );
-        ChatRoom room = ChatRoom(roomAddress);
-        room.setChatRoomType(roomType);
-        chatRoomStruct build_room = address_to_chatRoom_map[roomAddress];
-        build_room.chatRoomType = roomType;
-        chat_rooms_array.push(build_room);
-    }
-
-    //get data from contracts
-    function getMessagesFromChatRoomByName(string chat_room_name_received)
-        public
-        view
-        returns (ChatRoom.Message[])
-    {
-        string username = public_address_to_username[msg.sender];
-        ChatRoom.Message[] array;
-        require(checkUserPresent(chat_room_name_received, username));
-        address chat_room_address = getDeployedChatRoomAddressByName(
-            chat_room_name_received
-        );
-        ChatRoom chat_room = ChatRoom(chat_room_address);
-        return (chat_room.getAllMessages());
-    }
-
-    function getDeployedProfileData() public view returns (string) {
-        require(validateUser());
-        address profile_address = getUsersProfileAddress();
-        Profile user_profile = Profile(profile_address);
-        return user_profile.getUserData();
-    }
-
-    function getUsersProfileAddress() private view returns (address) {
-        string username = public_address_to_username[msg.sender];
+    function getUserProfileAddress() public view returns (address) {
+        string storage username = public_address_to_username[msg.sender];
         for (uint256 i = 0; i < deployedUsers.length; i++) {
             Profile prof = Profile(deployedUsers[i]);
             if (
                 keccak256(abi.encodePacked(username)) ==
-                keccak256(abi.encodePacked(prof.getUserName()))
+                keccak256(abi.encodePacked(prof.getUsername()))
             ) {
                 return deployedUsers[i];
             }
         }
-        throw;
-    }
-
-    function getDeployedChatRooms() public view returns (address[]) {
-        require(validateUser());
-        return deployedChatRooms;
+        revert();
     }
 
     function getDeployedProfileAddressByName(string username)
@@ -158,28 +94,15 @@ contract DeployContracts {
             Profile prof = Profile(deployedUsers[i]);
             if (
                 keccak256(abi.encodePacked(username)) ==
-                keccak256(abi.encodePacked(prof.getUserName()))
+                keccak256(abi.encodePacked(prof.getUsername()))
             ) {
                 return deployedUsers[i];
             }
         }
     }
 
-    function getChatRoomOwner(string chat_room_name_received)
+    function getDeployedChatRoomAddressByName(string chatRoomNameReceived)
         public
-        view
-        returns (address)
-    {
-        require(validateUser());
-        address chat_room_address = getDeployedChatRoomAddressByName(
-            chat_room_name_received
-        );
-        ChatRoom room = ChatRoom(chat_room_address);
-        return room.getOwner();
-    }
-
-    function getDeployedChatRoomAddressByName(string chat_room_name_received)
-        private
         view
         returns (address)
     {
@@ -187,7 +110,7 @@ contract DeployContracts {
         for (uint256 i = 0; i < deployedChatRooms.length; i++) {
             ChatRoom room = ChatRoom(deployedChatRooms[i]);
             if (
-                keccak256(abi.encodePacked(chat_room_name_received)) ==
+                keccak256(abi.encodePacked(chatRoomNameReceived)) ==
                 keccak256(abi.encodePacked(room.getName()))
             ) {
                 return deployedChatRooms[i];
@@ -196,28 +119,25 @@ contract DeployContracts {
         return address(0);
     }
 
-    function checkUserIsOwner(string chat_room_name_received)
-        private
-        returns (bool)
-    {
-        if (
-            keccak256(abi.encodePacked(getUsersProfileAddress())) ==
-            keccak256(
-                abi.encodePacked(getChatRoomOwner(chat_room_name_received))
-            )
-        ) {
-            return true;
-        }
-        return false;
+    function getMainContractInfo() public view returns (string, uint256, uint256) {
+        return (mainContractName, deployedChatRooms.length, deployedUsers.length);
     }
 
+    function getDeployedChatRoomInfo(address chatRoomAddressReceived)
+        public
+        view
+        returns (chatRoomInfoStruct)
+    {
+        require(validateUser());
+        return addressToChatRoomMap[chatRoomAddressReceived];
+    }
+
+
+    // Validations
     function validateUser() private view returns (bool) {
-        address profile_address = getUsersProfileAddress();
-        Profile user_profile = Profile(profile_address);
-        if (
-            keccak256(abi.encodePacked(msg.sender)) ==
-            keccak256(abi.encodePacked(user_profile.getUserAddress()))
-        ) {
+        address profileAddress = getUserProfileAddress();
+        Profile userProfile = Profile(profileAddress);
+        if (userProfile.validateUserPublicAddress(msg.sender)) {
             return true;
         }
         return false;
@@ -234,224 +154,263 @@ contract DeployContracts {
         return true;
     }
 
-    function checkUserPresent(string chatRoomName, string username)
+}
+
+contract ChatRoom {
+    string private chatRoomName;
+    bool private isPrivateRoom;
+    string public ownerUserName;
+    address private ownerProfileAddress;
+
+    // Message
+    struct Message {
+        string username;
+        string message;
+        string timestamp;
+        address userProfileAddress;
+    }
+    mapping(address => Message) private userProfileAddressToMsgMapping;
+    Message[] private messageArray;
+    mapping(address => Message[]) private userProfileAddressToMsgArrayMapping;
+
+    // User Info
+    struct UserInfo {
+        string username;
+        bool userOnline;
+        bool userDeleted;
+    }
+    mapping(address => UserInfo) private userProfileAddressToUserInfoMapping;
+    UserInfo[] private userInfoArray;
+
+    // Constructor
+    constructor(
+        string chatRoomNameReceived,
+        address ownerProfileAddressReceived,
+        bool isPrivateRoomReceived
+    ) public {
+        chatRoomName = chatRoomNameReceived;
+        ownerProfileAddress = ownerProfileAddressReceived;
+        isPrivateRoom = isPrivateRoomReceived;
+        Profile profile = Profile(ownerProfileAddressReceived);
+        ownerUserName = profile.getUsername();
+        UserInfo storage build_userInfo = userProfileAddressToUserInfoMapping[
+            ownerProfileAddressReceived
+        ];
+        build_userInfo.username = profile.getUsername();
+        build_userInfo.userOnline = false;
+        build_userInfo.userDeleted = false;
+    }
+
+    // Owner functions
+    function addUser(
+        address userProfileAddressReceived,
+        address ownerProfileAddressReceived
+    ) public {
+        if(checkUserIsOwner(ownerProfileAddressReceived))
+        {
+            Profile profile = Profile(userProfileAddressReceived);
+            UserInfo storage build_userInfo = userProfileAddressToUserInfoMapping[
+                userProfileAddressReceived
+            ];
+            build_userInfo.username = profile.getUsername();
+            build_userInfo.userOnline = false;
+            build_userInfo.userDeleted = false;
+            userInfoArray.push(build_userInfo);
+        }
+    }
+
+    function deleteUser(address userProfileAddressReceived, address ownerProfileAddressReceived) public {
+        if(checkUserIsOwner(ownerProfileAddressReceived)){
+            if (userProfileAddressReceived != ownerProfileAddress) {
+                userProfileAddressToUserInfoMapping[userProfileAddressReceived]
+                    .userDeleted = true;
+            }
+        }
+    }
+
+
+    function setChatRoomType(address ownerProfileAddressReceived, bool roomType) public {
+        require(checkUserIsOwner(ownerProfileAddressReceived));
+        isPrivateRoom = roomType;
+    }
+
+    function checkUserIsOwner(address ownerAddressReceived)
         public
         view
         returns (bool)
     {
-        require(validateUser());
-        address chatRoomAddress = getDeployedChatRoomAddressByName(
-            chatRoomName
-        );
-        if (chatRoomAddress == 0x0000000000000000000000000000000000000000) {
-            return false;
+        if(validateUserThroughProfile(ownerAddressReceived))
+        {
+            if (ownerProfileAddress == ownerAddressReceived) {
+            return true;
+            }
         }
-        ChatRoom chatRoom = ChatRoom(chatRoomAddress);
-        if (
-            chatRoom.checkUserPresent(
-                getDeployedProfileAddressByName(username)
-            ) == true
-        ) {
+        return false;
+    }
+
+
+    // User functions
+    function addMessage(
+        address userProfileAddressReceived,
+        string usernameReceived,
+        string messageReceived,
+        string timestampReceived
+    ) public {
+        checkUserPresent(userProfileAddressReceived);
+        Message storage buildMessage = userProfileAddressToMsgMapping[
+            userProfileAddressReceived
+        ];
+        buildMessage.username = usernameReceived;
+        buildMessage.message = messageReceived;
+        buildMessage.userProfileAddress = userProfileAddressReceived;
+        buildMessage.timestamp = timestampReceived;
+        messageArray.push(buildMessage);
+        userProfileAddressToMsgArrayMapping[userProfileAddressReceived].push(
+            buildMessage
+        );
+    }
+
+    function setUserStatus(address userProfilAddressReceived, bool statusReceived) public {
+        require(checkUserPresent(userProfilAddressReceived));
+        userProfileAddressToUserInfoMapping[userProfilAddressReceived]
+            .userOnline = statusReceived;
+    }
+
+    // Validations
+    function validateUserThroughProfile(address userProfilAddressReceived)
+        public
+        view
+        returns (bool)
+    {
+        Profile profile = Profile(userProfilAddressReceived);
+        if (profile.validateUserPublicAddress(msg.sender)) {
             return true;
         }
         return false;
     }
 
-    function getInfo() public view returns (uint256, uint256) {
-        return (deployedChatRooms.length, deployedUsers.length);
-    }
-
-    function getRoomInfo() public view returns (chatRoomStruct[]) {
-        chatRoomStruct[] data;
-        for (uint256 i = 0; i < deployedChatRooms.length; i++) {
-            data.push(getDeployedChatRoomInfo(deployedChatRooms[i]));
-        }
-        return data;
-    }
-
-    function getDeployedChatRoomInfo(address roomAddress)
-        public
-        view
-        returns (chatRoomStruct)
-    {
-        require(validateUser());
-        return address_to_chatRoom_map[roomAddress];
-    }
-}
-
-contract ChatRoom {
-    string private chat_room_name;
-    bool private privateChatRoom;
-    string private ownerUserName;
-    address private owner_address;
-    mapping(address => string) private users_to_address;
-    struct Message {
-        string username;
-        string message;
-        string timestamp;
-        address user_public_address;
-    }
-    mapping(address => Message) private messages;
-    Message[] private message_array;
-    mapping(address => Message[]) private user_to_message;
-
-    function setName(string chat_room_name_received) public {
-        chat_room_name = chat_room_name_received;
-    }
-
-    function setOwner(address owner_address_received) public {
-        owner_address = owner_address_received;
-    }
-
-    function setOwnerUsername(string username) public {
-        ownerUserName = username;
-    }
-
-    function getOwnerUsername() public view returns (string) {
-        return ownerUserName;
-    }
-
-    function addUser(address user_profile_address, string username) public {
-        users_to_address[user_profile_address] = username;
-    }
-
-    function addMessage(
-        address user_public_address_received,
-        string user_name_received,
-        string message_received,
-        string timestamp_received
-    ) public {
-        Message build_message = messages[user_public_address_received];
-        build_message.username = user_name_received;
-        build_message.message = message_received;
-        build_message.user_public_address = user_public_address_received;
-        build_message.timestamp = timestamp_received;
-        message_array.push(build_message);
-        user_to_message[user_public_address_received].push(build_message);
-    }
-
-    function getName() public view returns (string) {
-        return chat_room_name;
-    }
-
-    function getOwner() public view returns (address) {
-        return owner_address;
-    }
-
-    function checkUserPresent(address user_profile_address)
+    function checkUserPresent(address userProfileAddressReceived)
         public
         view
         returns (bool)
     {
-        if (
-            privateChatRoom == true &&
-            keccak256(
-                abi.encodePacked(users_to_address[user_profile_address])
-            ) ==
-            keccak256(abi.encodePacked(""))
+        if (validateUserThroughProfile(userProfileAddressReceived) == false ||
+            (isPrivateRoom == true &&
+                (keccak256(
+                    abi.encodePacked(
+                        userProfileAddressToUserInfoMapping[
+                            userProfileAddressReceived
+                        ].username
+                    )
+                ) == keccak256(abi.encodePacked("")))) ||
+                (userProfileAddressToUserInfoMapping[userProfileAddressReceived]
+                    .userDeleted == true)
         ) {
             return false;
         }
         return true;
     }
 
-    function getAllMessages() public view returns (Message[]) {
-        return message_array;
+    // Getters
+
+    function getOwnerUsername() public view returns (string) {
+        return ownerUserName;
     }
 
-    function getMessagesOfUserByAddress(address user_public_address_received)
+    function getName() public view returns (string) {
+        return chatRoomName;
+    }
+
+    function getOwner() public view returns (address, string) {
+        return (ownerProfileAddress, ownerUserName);
+    }
+
+    function getUserStatus(address userProfileAddressReceived)
+        public
+        view
+        returns (bool)
+    {
+        return
+            userProfileAddressToUserInfoMapping[userProfileAddressReceived]
+                .userOnline;
+    }
+
+    function getAlluserProfileAddressToMsgMapping(address userProfileAddressReceived)
         public
         view
         returns (Message[])
     {
-        return user_to_message[user_public_address_received];
+        checkUserPresent(userProfileAddressReceived);
+        return messageArray;
     }
 
-    function setChatRoomType(bool roomType) public {
-        privateChatRoom = roomType;
+    function getuserProfileAddressToMsgMappingOfUserByAddress(
+        address userProfilAddressReceived
+    ) public view returns (Message[]) {
+        checkUserPresent(msg.sender);
+        return userProfileAddressToMsgArrayMapping[userProfilAddressReceived];
     }
+
 
     function getChatRoomType() public view returns (bool) {
-        return privateChatRoom;
+        return isPrivateRoom;
     }
 
-    function append(
-        string a,
-        string b,
-        string c,
-        string d,
-        string e,
-        string f
-    ) internal pure returns (string) {
-        return string(abi.encodePacked(a, b, c, d, e, f));
+    function getChatRoomInfo() public view returns (string, string, bool) {
+        return (chatRoomName, ownerUserName, isPrivateRoom);
     }
 
-    function getChatRoomInfo() public view returns (string) {
-        if (privateChatRoom) {
-            return
-                append(
-                    "RoomName: ",
-                    chat_room_name,
-                    " RoomType: ",
-                    " PrivateRoom ",
-                    "RoomOwner: ",
-                    ownerUserName
-                );
-        }
-        return
-            append(
-                "RoomName: ",
-                chat_room_name,
-                " RoomType: ",
-                " PublicRoom ",
-                "RoomOwner: ",
-                ownerUserName
-            );
+    function getUserInfoArray() public view returns(UserInfo[]){
+        return userInfoArray;
     }
 }
 
 contract Profile {
     string private username;
-    string private encrypted_data;
-    address private user_public_address;
+    string private encryptedData;
+    address public userPublicAddress;
+    string[] private privateData;
 
-    function getUserName() public view returns (string) {
+    constructor(string usernameReceived, string encryptedDataReceived, address userPublicAddressReceived) public {
+        username = usernameReceived;
+        encryptedData = encryptedDataReceived;
+        userPublicAddress = userPublicAddressReceived;
+    }
+
+    function getUsername() public view returns (string) {
         return username;
     }
 
     function getUserData() public view returns (string) {
-        return encrypted_data;
+        if (userPublicAddress == msg.sender) {
+            return encryptedData;
+        }
+        return "";
     }
 
-    function addUser(
-        string user_name_received,
-        string encrypted_data_received,
-        address user_public_address_received
-    ) public {
-        username = user_name_received;
-        encrypted_data = encrypted_data_received;
-        user_public_address = user_public_address_received;
+    function getUserPublicAddress() public view returns (address) {
+        if (userPublicAddress == msg.sender) {
+            return userPublicAddress;
+        }
+        return 0x0000000000000000000000000000000000000000;
     }
 
-    function getUserByName(string user_name_received)
-        public
-        view
-        returns (
-            string,
-            string,
-            address
-        )
-    {
-        require(msg.sender == user_public_address);
-        if (
-            keccak256(abi.encodePacked(username)) ==
-            keccak256(abi.encodePacked(user_name_received))
-        ) {
-            return (username, encrypted_data, user_public_address);
+    function getPrivateData() public view returns (string[]) {
+        if (msg.sender == userPublicAddress) {
+            return privateData;
         }
     }
 
-    function getUserAddress() public view returns (address) {
-        return user_public_address;
+    function addPrivateData(string privateDataReceived) public {
+        if (msg.sender == userPublicAddress) {
+            privateData.push(privateDataReceived);
+        }
+    }
+
+    function validateUserPublicAddress(address userPublicAddressReceived) public view returns(bool){
+        if(userPublicAddressReceived == userPublicAddress){
+            return true;
+        }
+        return false;
     }
 }
